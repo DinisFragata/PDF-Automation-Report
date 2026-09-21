@@ -1,36 +1,45 @@
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.pyc
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
+# Virtual environments
 venv/
+.venv/
 ENV/
 env/
 
+# Secrets and local config
 .env
-token.pickle
-credentials.json
+.env.*
+!.env.example
 service_account.json
 service_account.generated.json
 
+# Runtime data (user uploads and generated reports/charts)
 uploads/
-uploads/*.xlsx
 assets/*.pdf
 assets/*.png
+!assets/examples/
 
+# Tooling / editors / OS
 .ipynb_checkpoints/
-.DS_Store
-Thumbs.db
-
+.vercel/
+.claude/settings.local.json
 .vscode/
 .idea/
-
+.history/
+.DS_Store
+Thumbs.db
 *.log
 
+# Binaries
 *.exe
 *.dll
 *.so
 *.dylib
 
-.history/
+CLAUDE.md

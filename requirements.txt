@@ -1,15 +1,11 @@
 pandas
 gspread
 google-auth
-google-auth-oauthlib
-google-api-python-client
 matplotlib
 seaborn
-fpdf
-schedule
+fpdf2
 openpyxl
 fastapi
 uvicorn
 python-multipart
-jinja2
 python-dotenv

@@ -70,9 +70,14 @@ def send_email_zoho(
     subject: str,
     body: str,
     attachment_path: Optional[str] = None,
+    attachment_name: Optional[str] = None,
+    max_recipients: int = 1,
 ) -> dict:
     smtp_config = _get_smtp_config()
     recipient_list = _split_recipients(recipients)
+
+    if len(recipient_list) > max_recipients:
+        raise ValueError(f"At most {max_recipients} recipient(s) are allowed.")
 
     email_subject = subject.strip() or "Automated Sales Report"
 
@@ -107,7 +112,7 @@ def send_email_zoho(
                 file.read(),
                 maintype=maintype,
                 subtype=subtype,
-                filename=path.name,
+                filename=attachment_name or path.name,
             )
 
     if smtp_config["security"] == "ssl":

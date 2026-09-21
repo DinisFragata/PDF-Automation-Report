@@ -192,180 +192,359 @@
       color: #6b7280;
       font-weight: normal;
     }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .notice {
+      margin: 16px 0 0;
+      padding: 10px 12px;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      background: #fffbeb;
+      color: #92400e;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      flex-shrink: 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .lang-switch button {
+      width: auto;
+      padding: 6px 12px;
+      border-radius: 0;
+      background: white;
+      color: #374151;
+      font-size: 13px;
+    }
+
+    .lang-switch button:hover {
+      background: #f1f5f9;
+    }
+
+    .lang-switch button.active {
+      background: #111827;
+      color: white;
+    }
+
+    .code-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .code-row button {
+      width: auto;
+      white-space: nowrap;
+      margin: 0;
+    }
+
+    .code-fields {
+      display: none;
+      margin-top: 14px;
+    }
+
+    .code-fields.visible {
+      display: block;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        margin: 16px;
+        padding: 20px;
+      }
+
+      .code-row {
+        flex-direction: column;
+      }
+
+      .code-row button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>Automated Sales Report</h1>
+    <div class="topbar">
+      <h1 data-i18n="title">Automated Sales Report</h1>
 
-    <p>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="pt">PT</button>
+      </div>
+    </div>
+
+    <p data-i18n="intro">
       Upload an Excel file and generate an automated PDF sales report with
-      charts, metrics and analysis. You can also send the report by email.
+      charts, metrics and analysis.
     </p>
+
+    <div id="offlineNotice" class="notice" role="status" hidden data-i18n="offlineNotice">
+      The server is unavailable, so the PDF will be generated in your browser
+      (email is not available). Your file never leaves your computer.
+    </div>
 
     <div class="upload-box">
       <form id="reportForm">
         <div class="form-group">
-          <label for="fileInput">Excel file</label>
+          <label for="fileInput" data-i18n="fileLabel">Excel file</label>
           <input
             type="file"
             id="fileInput"
             name="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx"
             required
           />
         </div>
 
-        <div class="checkbox-row">
+        <div class="checkbox-row" id="sendEmailRow" hidden>
           <input type="checkbox" id="sendEmailInput" />
-          <span>Send report by email</span>
+          <label for="sendEmailInput" style="margin: 0; font-weight: normal" data-i18n="sendEmail">
+            Send the report to my email
+          </label>
         </div>
 
         <div id="emailFields" class="email-fields">
           <div class="form-group">
-            <label for="recipientsInput">Recipients</label>
-            <input
-              type="text"
-              id="recipientsInput"
-              placeholder="client@example.com, admin@example.com"
-            />
-            <div class="hint">Separate multiple emails with commas.</div>
+            <label for="emailInput" data-i18n="emailLabel">Your email</label>
+            <div class="code-row">
+              <input
+                type="email"
+                id="emailInput"
+                autocomplete="email"
+                placeholder="you@example.com"
+              />
+              <button type="button" id="sendCodeBtn" class="more-options-btn" data-i18n="sendCode">
+                Send code
+              </button>
+            </div>
+            <div class="hint" data-i18n="emailHint">
+              For security, the report can only be sent to an email you can
+              confirm with a 6-digit code.
+            </div>
           </div>
 
-          <button
-            type="button"
-            id="moreOptionsBtn"
-            class="more-options-btn"
-          >
-            More options
-          </button>
-
-          <div id="advancedEmailFields" class="advanced-email-fields">
-            <div class="form-group">
-              <label for="subjectInput">Email subject</label>
+          <div id="codeFields" class="code-fields">
+            <div class="form-group" style="margin-bottom: 0">
+              <label for="codeInput" data-i18n="codeLabel">Verification code</label>
               <input
                 type="text"
-                id="subjectInput"
-                value="Automated Sales Report"
+                id="codeInput"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                maxlength="6"
+                placeholder="123456"
               />
-              <div class="hint">
-                Leave empty to use the default subject.
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="bodyInput">Email body</label>
-              <textarea id="bodyInput">Hello,
-
-Attached is your automated sales report with charts, metrics and analysis.
-
-Best regards,
-Automated Sales Report System</textarea>
-              <div class="hint">
-                Leave empty to use the default email body.
-              </div>
             </div>
           </div>
         </div>
 
-        <button type="submit" id="submitBtn">
-          Generate PDF Report
-        </button>
+        <button type="submit" id="submitBtn"></button>
       </form>
 
-      <div id="status" class="status"></div>
+      <div id="status" class="status" role="status"></div>
       <div id="downloadArea"></div>
     </div>
 
-    <p class="small">
+    <p class="small" data-i18n="required">
       Required Excel columns: Date, Product, Quantity, Price, Seller.
     </p>
   </div>
 
+  <script src="config.js"></script>
   <script>
-    const API_URL = "https://data-automation-reports-production.up.railway.app";
+    // Settings come from config.js; defaults apply if it is missing.
+    const APP_CONFIG = Object.assign(
+      { USE_API: true, API_URL: "https://data-automation-reports-production.up.railway.app" },
+      window.APP_CONFIG
+    );
+    const API_URL = APP_CONFIG.API_URL;
 
-    const DEFAULT_EMAIL_SUBJECT = "Automated Sales Report";
-
-    const DEFAULT_EMAIL_BODY = `Hello,
-
-Attached is your automated sales report with charts, metrics and analysis.
-
-Best regards,
-Automated Sales Report System`;
+    const I18N = {
+      en: {
+        title: "Automated Sales Report",
+        intro:
+          "Upload an Excel file and generate an automated PDF sales report with charts, metrics and analysis.",
+        fileLabel: "Excel file",
+        sendEmail: "Send the report to my email",
+        emailLabel: "Your email",
+        sendCode: "Send code",
+        emailHint:
+          "For security, the report can only be sent to an email you can confirm with a 6-digit code.",
+        codeLabel: "Verification code",
+        required: "Required Excel columns: Date, Product, Quantity, Price, Seller.",
+        generate: "Generate PDF Report",
+        generateSend: "Generate and Send Report",
+        generating: "Generating...",
+        generatingSend: "Generating and sending...",
+        waitGenerating: "Generating report, please wait...",
+        waitGeneratingSend: "Generating report and sending email, please wait...",
+        download: "Download PDF Report",
+        needFile: "Please select an Excel file.",
+        needEmail: "Please enter your email.",
+        needCode: "Please request a code and enter it.",
+        sendingCode: "Sending code...",
+        codeSent: "Code sent. Check your inbox (and spam folder) and enter it below.",
+        codeFailed: "Could not send the code.",
+        failed: "Failed to generate report.",
+        networkError: "Could not reach the server. Please try again.",
+        success: "Report generated successfully.",
+        successSent: "Report generated and sent to your email.",
+        offlineNotice:
+          "The server is unavailable, so the PDF will be generated in your browser (email is not available). Your file never leaves your computer.",
+        browserNotice: "The PDF is generated in your browser. Your file never leaves your computer.",
+        generatingBrowser: "Generating the PDF in your browser...",
+        generatingLocal: "Server unavailable. Generating the PDF in your browser...",
+        successLocal: "Report generated in your browser (email was not sent).",
+        errNotXlsx: "Please upload an Excel file (.xlsx).",
+        errTooLarge: "The file is too large (max 5 MB).",
+        errUnreadable: "Could not read the Excel file. Please upload a valid .xlsx file.",
+        errMissingColumns: "Missing required columns: {cols}",
+        errNoRows: "The uploaded file has no valid rows after cleaning.",
+        errLibs: "Could not load the components needed to generate the PDF. Check your connection and try again."
+      },
+      pt: {
+        title: "Relatório de Vendas Automático",
+        intro:
+          "Carrega um ficheiro Excel e gera um relatório de vendas em PDF, com gráficos, métricas e análise.",
+        fileLabel: "Ficheiro Excel",
+        sendEmail: "Enviar o relatório para o meu email",
+        emailLabel: "O teu email",
+        sendCode: "Enviar código",
+        emailHint:
+          "Por segurança, o relatório só pode ser enviado para um email que consigas confirmar com um código de 6 dígitos.",
+        codeLabel: "Código de verificação",
+        required: "Colunas obrigatórias na folha de cálculo: Date, Product, Quantity, Price, Seller.",
+        generate: "Gerar relatório PDF",
+        generateSend: "Gerar e enviar relatório",
+        generating: "A gerar...",
+        generatingSend: "A gerar e a enviar...",
+        waitGenerating: "A gerar o relatório, aguarda um momento...",
+        waitGeneratingSend: "A gerar o relatório e a enviar o email, aguarda um momento...",
+        download: "Descarregar relatório PDF",
+        needFile: "Seleciona um ficheiro Excel.",
+        needEmail: "Indica o teu email.",
+        needCode: "Pede um código e introduz-o.",
+        sendingCode: "A enviar o código...",
+        codeSent: "Código enviado. Verifica a caixa de entrada (e o spam) e introduz o código abaixo.",
+        codeFailed: "Não foi possível enviar o código.",
+        failed: "Não foi possível gerar o relatório.",
+        networkError: "Não foi possível contactar o servidor. Tenta novamente.",
+        success: "Relatório gerado com sucesso.",
+        successSent: "Relatório gerado e enviado para o teu email.",
+        offlineNotice:
+          "O servidor está indisponível, por isso o PDF vai ser gerado no teu browser (o envio por email não está disponível). O ficheiro nunca sai do teu computador.",
+        browserNotice: "O PDF é gerado no teu browser. O ficheiro nunca sai do teu computador.",
+        generatingBrowser: "A gerar o PDF no teu browser...",
+        generatingLocal: "Servidor indisponível. A gerar o PDF no teu browser...",
+        successLocal: "Relatório gerado no teu browser (o email não foi enviado).",
+        errNotXlsx: "Carrega um ficheiro Excel (.xlsx).",
+        errTooLarge: "O ficheiro é demasiado grande (máx. 5 MB).",
+        errUnreadable: "Não foi possível ler o ficheiro Excel. Carrega um ficheiro .xlsx válido.",
+        errMissingColumns: "Colunas obrigatórias em falta: {cols}",
+        errNoRows: "O ficheiro não tem linhas válidas depois da limpeza.",
+        errLibs: "Não foi possível carregar os componentes necessários para gerar o PDF. Verifica a ligação e tenta novamente."
+      }
+    };
 
     const form = document.getElementById("reportForm");
     const fileInput = document.getElementById("fileInput");
+    const sendEmailRow = document.getElementById("sendEmailRow");
     const sendEmailInput = document.getElementById("sendEmailInput");
     const emailFields = document.getElementById("emailFields");
-    const recipientsInput = document.getElementById("recipientsInput");
-    const subjectInput = document.getElementById("subjectInput");
-    const bodyInput = document.getElementById("bodyInput");
-
-    const moreOptionsBtn = document.getElementById("moreOptionsBtn");
-    const advancedEmailFields = document.getElementById("advancedEmailFields");
-
+    const emailInput = document.getElementById("emailInput");
+    const sendCodeBtn = document.getElementById("sendCodeBtn");
+    const codeFields = document.getElementById("codeFields");
+    const codeInput = document.getElementById("codeInput");
     const submitBtn = document.getElementById("submitBtn");
     const statusDiv = document.getElementById("status");
     const downloadArea = document.getElementById("downloadArea");
+    const offlineNotice = document.getElementById("offlineNotice");
 
-    let moreOptionsOpen = false;
+    let lang = "en";
+    let verificationToken = "";
+    let lastDownloadUrl = "";
+    let lastBlobUrl = "";
+    let offlineMode = false;
+
+    const CONFIG_TIMEOUT_MS = 8000;
+    const GENERATE_TIMEOUT_MS = 60000;
+    const SERVER_DOWN_STATUSES = [502, 503, 504];
+
+    function t(key) {
+      return I18N[lang][key] || I18N.en[key] || key;
+    }
+
+    function detectLanguage() {
+      try {
+        const saved = localStorage.getItem("lang");
+        if (saved === "en" || saved === "pt") return saved;
+      } catch (e) {}
+
+      return (navigator.language || "").toLowerCase().startsWith("pt") ? "pt" : "en";
+    }
+
+    function setLanguage(newLang) {
+      lang = newLang;
+
+      try {
+        localStorage.setItem("lang", lang);
+      } catch (e) {}
+
+      document.documentElement.lang = lang === "pt" ? "pt-PT" : "en";
+
+      document.querySelectorAll("[data-i18n]").forEach(function (element) {
+        element.textContent = t(element.dataset.i18n);
+      });
+
+      document.querySelectorAll(".lang-switch button").forEach(function (button) {
+        button.classList.toggle("active", button.dataset.lang === lang);
+      });
+
+      updateSubmitLabel();
+
+      if (lastDownloadUrl) showDownloadLink(lastDownloadUrl);
+    }
+
+    function updateSubmitLabel() {
+      submitBtn.textContent = sendEmailInput.checked ? t("generateSend") : t("generate");
+    }
 
     function updateEmailFieldsVisibility() {
-      if (sendEmailInput.checked) {
-        emailFields.classList.add("visible");
-        submitBtn.textContent = "Generate and Send Report";
-      } else {
-        emailFields.classList.remove("visible");
-        advancedEmailFields.classList.remove("visible");
-
-        moreOptionsOpen = false;
-        moreOptionsBtn.textContent = "More options";
-
-        submitBtn.textContent = "Generate PDF Report";
-      }
+      emailFields.classList.toggle("visible", sendEmailInput.checked);
+      updateSubmitLabel();
     }
 
-    function toggleMoreOptions() {
-      moreOptionsOpen = !moreOptionsOpen;
-
-      if (moreOptionsOpen) {
-        advancedEmailFields.classList.add("visible");
-        moreOptionsBtn.textContent = "Hide options";
-      } else {
-        advancedEmailFields.classList.remove("visible");
-        moreOptionsBtn.textContent = "More options";
-      }
+    function setStatus(message, kind) {
+      statusDiv.textContent = message;
+      statusDiv.className = "status" + (kind ? " " + kind : "");
     }
 
-    function getEmailSubject() {
-      const customSubject = subjectInput.value.trim();
+    function showDownloadLink(href) {
+      if (!href) return;
 
-      if (!customSubject) {
-        return DEFAULT_EMAIL_SUBJECT;
-      }
-
-      return customSubject;
-    }
-
-    function getEmailBody() {
-      const customBody = bodyInput.value.trim();
-
-      if (!customBody) {
-        return DEFAULT_EMAIL_BODY;
-      }
-
-      return customBody;
-    }
-
-    function showDownloadLink(downloadUrl) {
-      if (!downloadUrl) return;
+      lastDownloadUrl = href;
 
       const link = document.createElement("a");
-      link.href = `${API_URL}${downloadUrl}`;
+      link.href = href;
       link.download = "sales_report.pdf";
-      link.textContent = "Download PDF Report";
+      link.textContent = t("download");
       link.className = "download-link";
 
       downloadArea.innerHTML = "";
@@ -386,8 +565,654 @@ Automated Sales Report System`;
       };
     }
 
+    function fetchWithTimeout(url, options, timeoutMs) {
+      const controller = new AbortController();
+      const timer = setTimeout(function () {
+        controller.abort();
+      }, timeoutMs);
+
+      return fetch(url, Object.assign({}, options, { signal: controller.signal })).finally(
+        function () {
+          clearTimeout(timer);
+        }
+      );
+    }
+
+    // The PDF is generated in the browser and email is not offered. Either the API is
+    // unreachable (fallback) or config.js has USE_API = false (browser-only demo).
+    function enterOfflineMode() {
+      offlineMode = true;
+
+      sendEmailInput.checked = false;
+      sendEmailRow.hidden = true;
+
+      offlineNotice.dataset.i18n = APP_CONFIG.USE_API ? "offlineNotice" : "browserNotice";
+      offlineNotice.textContent = t(offlineNotice.dataset.i18n);
+      offlineNotice.hidden = false;
+
+      updateEmailFieldsVisibility();
+    }
+
+    async function loadConfig() {
+      try {
+        const response = await fetchWithTimeout(`${API_URL}/config`, {}, CONFIG_TIMEOUT_MS);
+
+        if (!response.ok) throw new Error("API unavailable");
+
+        const data = await response.json();
+
+        sendEmailRow.hidden = !data.email_enabled;
+      } catch (error) {
+        enterOfflineMode();
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // Browser fallback: builds the same report as the Python API, client-side.
+    // Keep in sync with data_processing.clean_data and pdf_generator.generate_pdf.
+    // ---------------------------------------------------------------------
+
+    const LIBS = [
+      {
+        src: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
+        integrity: "sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
+      },
+      {
+        src: "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js",
+        integrity: "sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/"
+      },
+      {
+        src: "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js",
+        integrity: "sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM"
+      }
+    ];
+
+    let libsPromise = null;
+
+    function loadScript(lib) {
+      return new Promise(function (resolve, reject) {
+        const script = document.createElement("script");
+
+        script.src = lib.src;
+        script.integrity = lib.integrity;
+        script.crossOrigin = "anonymous";
+        script.onload = resolve;
+        script.onerror = reject;
+
+        document.head.appendChild(script);
+      });
+    }
+
+    function loadLibs() {
+      if (!libsPromise) {
+        libsPromise = Promise.all(LIBS.map(loadScript)).catch(function () {
+          libsPromise = null;
+          throw new LocalError("errLibs");
+        });
+      }
+
+      return libsPromise;
+    }
+
+    // <report-core>
+    const REQUIRED_COLUMNS = ["Date", "Product", "Quantity", "Price", "Seller"];
+    const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+    class LocalError extends Error {
+      constructor(key, params) {
+        super(key);
+        this.key = key;
+        this.params = params || {};
+      }
+    }
+
+    function isMissing(value) {
+      return value === null || value === undefined || (typeof value === "number" && isNaN(value));
+    }
+
+    // Returns a Date whose UTC getters give the wall-clock date/time, or null.
+    function toDate(value) {
+      if (typeof value === "number") {
+        if (!isFinite(value) || value <= 0) return null;
+
+        // Excel serial number (days since 1899-12-30).
+        return new Date(Math.round((value - 25569) * 86400) * 1000);
+      }
+
+      if (typeof value === "string" && value.trim()) {
+        const text = value.trim();
+        const parsed = new Date(text);
+
+        if (isNaN(parsed)) return null;
+
+        // Date-only ISO strings are parsed as UTC; everything else as local time.
+        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return parsed;
+
+        return new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60000);
+      }
+
+      return null;
+    }
+
+    function toNumber(value) {
+      if (typeof value === "number") return isFinite(value) ? value : null;
+
+      if (typeof value === "string") {
+        const text = value.trim();
+
+        if (/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(text)) return Number(text);
+      }
+
+      return null;
+    }
+
+    // Rows as objects, from the first sheet. Throws LocalError if unreadable/missing columns.
+    function readRows(XLSX, arrayBuffer) {
+      let matrix;
+
+      try {
+        const workbook = XLSX.read(arrayBuffer, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: true });
+      } catch (error) {
+        throw new LocalError("errUnreadable");
+      }
+
+      const headers = matrix[0] || [];
+      const missing = REQUIRED_COLUMNS.filter(function (column) {
+        return headers.indexOf(column) === -1;
+      });
+
+      if (missing.length) {
+        throw new LocalError("errMissingColumns", { cols: missing.join(", ") });
+      }
+
+      return matrix.slice(1).map(function (cells) {
+        const row = {};
+
+        REQUIRED_COLUMNS.forEach(function (column) {
+          row[column] = cells[headers.indexOf(column)];
+        });
+
+        return row;
+      });
+    }
+
+    // Mirrors data_processing.clean_data: drop empty/invalid/negative rows, Quantity as int.
+    function cleanRows(rows) {
+      const cleaned = [];
+
+      rows.forEach(function (row) {
+        if (REQUIRED_COLUMNS.some(function (column) { return isMissing(row[column]); })) return;
+
+        const date = toDate(row.Date);
+        const quantity = toNumber(row.Quantity);
+        const price = toNumber(row.Price);
+
+        if (!date || quantity === null || price === null || quantity < 0 || price < 0) return;
+
+        cleaned.push({
+          date: date.getTime(),
+          product: String(row.Product),
+          quantity: Math.trunc(quantity),
+          price: price,
+          seller: String(row.Seller)
+        });
+      });
+
+      return cleaned;
+    }
+
+    function compareText(a, b) {
+      return a < b ? -1 : a > b ? 1 : 0;
+    }
+
+    function groupBy(rows, keyOf) {
+      const groups = new Map();
+
+      rows.forEach(function (row) {
+        const key = keyOf(row);
+        const group = groups.get(key) || { name: key, quantity: 0, revenue: 0 };
+
+        group.quantity += row.quantity;
+        group.revenue += row.quantity * row.price;
+        groups.set(key, group);
+      });
+
+      return Array.from(groups.values());
+    }
+
+    // First maximum, like pandas idxmax on a sorted groupby.
+    function topGroup(groups) {
+      return groups.reduce(function (best, group) {
+        return group.quantity > best.quantity ? group : best;
+      });
+    }
+
+    function formatMoney(value) {
+      return "€" + value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatDate(ms) {
+      const iso = new Date(ms).toISOString();
+
+      return iso.endsWith("T00:00:00.000Z") ? iso.slice(0, 10) : iso.slice(0, 10) + " " + iso.slice(11, 16);
+    }
+
+    function computeReport(rows) {
+      const products = groupBy(rows, function (row) { return row.product; }).sort(function (a, b) {
+        return compareText(a.name, b.name);
+      });
+
+      const sellers = groupBy(rows, function (row) { return row.seller; }).sort(function (a, b) {
+        return compareText(a.name, b.name);
+      });
+
+      const trend = groupBy(rows, function (row) { return row.date; }).sort(function (a, b) {
+        return a.name - b.name;
+      });
+
+      return {
+        totalQuantity: rows.reduce(function (sum, row) { return sum + row.quantity; }, 0),
+        totalRevenue: rows.reduce(function (sum, row) { return sum + row.quantity * row.price; }, 0),
+        products: products,
+        sellers: sellers,
+        trend: trend,
+        bestProduct: topGroup(products).name,
+        bestSeller: topGroup(sellers).name
+      };
+    }
+
+    // jsPDF's built-in fonts only cover Windows-1252 (which includes €).
+    function pdfText(value) {
+      return String(value).replace(/[^\u0000-ÿ€]/g, "?");
+    }
+
+    function buildPdf(jsPDF, report, charts) {
+      const doc = new jsPDF({ unit: "mm", format: "a4", compress: true });
+
+      const LEFT = 10;
+      const WIDTH = 190;
+      const BOTTOM = 282;
+
+      let y = 20;
+
+      function text(value, x, top, height, options) {
+        doc.text(pdfText(value), x, top + height / 2, Object.assign({ baseline: "middle" }, options));
+      }
+
+      function newPage() {
+        doc.addPage();
+        startPage();
+      }
+
+      function startPage() {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+
+        doc.setTextColor(100, 100, 100);
+        text("Automated Sales Report", 105, 10, 10, { align: "center" });
+
+        doc.setTextColor(128, 128, 128);
+        text("Made by: Dinis Fragata", LEFT, 282, 10);
+        text("Page " + doc.getNumberOfPages(), LEFT + WIDTH, 282, 10, { align: "right" });
+
+        y = 20;
+      }
+
+      function paragraph(value, style, size, gap) {
+        doc.setFont("helvetica", style);
+        doc.setFontSize(size);
+        doc.setTextColor(0, 0, 0);
+
+        value.split("\n").forEach(function (line) {
+          const wrapped = line ? doc.splitTextToSize(pdfText(line), WIDTH) : [""];
+
+          wrapped.forEach(function (part) {
+            if (y + 8 > BOTTOM) newPage();
+
+            doc.setFont("helvetica", style);
+            doc.setFontSize(size);
+            doc.setTextColor(0, 0, 0);
+            text(part, LEFT, y, 8);
+            y += 8;
+          });
+        });
+
+        y += gap;
+      }
+
+      startPage();
+
+      doc.setLineWidth(0.2);
+
+      // Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(0, 0, 0);
+      text("Sales Report", LEFT, y, 10);
+      y += 20;
+
+      // Metrics
+      doc.setFontSize(12);
+      text("Summary of Metrics:", LEFT, y, 8);
+      y += 13;
+
+      doc.setFontSize(11);
+      doc.setFillColor(200, 200, 200);
+      doc.rect(LEFT, y, 80, 8, "FD");
+      doc.rect(LEFT + 80, y, 100, 8, "FD");
+      text("Metrics", LEFT + 40, y, 8, { align: "center" });
+      text("Values", LEFT + 130, y, 8, { align: "center" });
+      y += 8;
+
+      const metrics = [
+        ["Total Quantity Sold", String(report.totalQuantity)],
+        ["Total Revenue", formatMoney(report.totalRevenue)],
+        ["Number of Products", String(report.products.length)],
+        ["Number of Sellers", String(report.sellers.length)],
+        ["Best Selling Product", report.bestProduct],
+        ["Top Seller", report.bestSeller]
+      ];
+
+      doc.setFont("helvetica", "normal");
+
+      metrics.forEach(function (metric) {
+        doc.rect(LEFT, y, 80, 8, "S");
+        doc.rect(LEFT + 80, y, 100, 8, "S");
+        text(metric[0], LEFT + 1, y, 8);
+        text(metric[1], LEFT + 81, y, 8);
+        y += 8;
+      });
+
+      y += 10;
+
+      // Analysis
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      text("Sales Analysis:", LEFT, y, 8);
+      y += 10;
+
+      paragraph(
+        "The sales report shows a total of " + report.totalQuantity + " units sold, generating " +
+          "a revenue of " + formatMoney(report.totalRevenue) + ". The most popular product was '" +
+          report.bestProduct + "', indicating a strong demand in this category. " +
+          "The top performing seller was '" + report.bestSeller +
+          "', contributing significantly to total sales.\n\n" +
+          "From the observed trends, we can identify the overall performance across products and sellers. " +
+          "Consistently high sales for certain products may indicate market stability, while fluctuations " +
+          "highlight possible seasonal or external influences.",
+        "normal",
+        12,
+        10
+      );
+
+      // Charts with explanations
+      const explanations = [
+        "This chart shows the distribution of total sales quantity per product.",
+        "This chart illustrates the revenue per product, highlighting the most profitable items.",
+        "This chart compares sellers, showing which sellers drove the most sales.",
+        "This chart represents sales trends over time, helping identify stability or seasonal spikes."
+      ];
+
+      charts.forEach(function (chart, index) {
+        const height = (WIDTH - 10) * chart.height / chart.width;
+
+        if (y + height > BOTTOM) newPage();
+
+        doc.addImage(chart.dataUrl, "PNG", LEFT, y, WIDTH - 10, height);
+        y += height + 5;
+
+        paragraph(explanations[index], "italic", 11, 10);
+      });
+
+      return doc.output("blob");
+    }
+    // </report-core>
+
+    function renderChart(config, width, height) {
+      const canvas = document.createElement("canvas");
+
+      canvas.width = width;
+      canvas.height = height;
+
+      config.options = Object.assign({ responsive: false, animation: false, devicePixelRatio: 1 }, config.options);
+
+      const chart = new Chart(canvas.getContext("2d"), config);
+      const dataUrl = canvas.toDataURL("image/png");
+
+      chart.destroy();
+
+      return { dataUrl: dataUrl, width: width, height: height };
+    }
+
+    function drawCharts(report) {
+      Chart.defaults.font.size = 20;
+      Chart.defaults.font.family = "Helvetica, Arial, sans-serif";
+
+      const whiteBackground = {
+        id: "whiteBackground",
+        beforeDraw: function (chart) {
+          chart.ctx.save();
+          chart.ctx.fillStyle = "#ffffff";
+          chart.ctx.fillRect(0, 0, chart.width, chart.height);
+          chart.ctx.restore();
+        }
+      };
+
+      const valueLabels = {
+        id: "valueLabels",
+        afterDatasetsDraw: function (chart, args, options) {
+          if (!options.format) return;
+
+          const ctx = chart.ctx;
+
+          ctx.save();
+          ctx.fillStyle = "#222222";
+          ctx.font = "18px Helvetica, Arial, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+
+          chart.getDatasetMeta(0).data.forEach(function (bar, index) {
+            ctx.fillText(options.format(chart.data.datasets[0].data[index]), bar.x, bar.y - 6);
+          });
+
+          ctx.restore();
+        }
+      };
+
+      function titleOptions(title) {
+        return { display: true, text: title, font: { size: 28, weight: "bold" }, padding: { bottom: 20 } };
+      }
+
+      function axisTitle(label) {
+        return { display: true, text: label };
+      }
+
+      function barChart(title, xLabel, yLabel, groups, hue, formatValue, valueOf) {
+        const count = groups.length;
+        const rotation = count > 5 ? 45 : 0;
+
+        return renderChart(
+          {
+            type: "bar",
+            data: {
+              labels: groups.map(function (group) { return group.name; }),
+              datasets: [{
+                data: groups.map(valueOf),
+                backgroundColor: groups.map(function (group, index) {
+                  const lightness = count > 1 ? 72 - (40 * index) / (count - 1) : 55;
+                  return "hsl(" + hue + ", 45%, " + lightness + "%)";
+                })
+              }]
+            },
+            options: {
+              layout: { padding: { top: 40, right: 20 } },
+              plugins: {
+                legend: { display: false },
+                title: titleOptions(title),
+                valueLabels: { format: formatValue }
+              },
+              scales: {
+                x: { title: axisTitle(xLabel), ticks: { minRotation: rotation, maxRotation: rotation } },
+                y: { beginAtZero: true, title: axisTitle(yLabel) }
+              }
+            },
+            plugins: [whiteBackground, valueLabels]
+          },
+          1200,
+          750
+        );
+      }
+
+      const integer = function (value) { return String(value); };
+
+      return [
+        barChart("Total Quantity per Product", "Product", "Quantity", report.products, 205, integer,
+          function (group) { return group.quantity; }),
+        barChart("Total Revenue per Product", "Product", "Revenue (€)", report.products, 270, formatMoney,
+          function (group) { return group.revenue; }),
+        barChart("Total Quantity per Seller", "Seller", "Quantity", report.sellers, 130, integer,
+          function (group) { return group.quantity; }),
+        renderChart(
+          {
+            type: "line",
+            data: {
+              labels: report.trend.map(function (point) { return formatDate(point.name); }),
+              datasets: [{
+                data: report.trend.map(function (point) { return point.quantity; }),
+                borderColor: "teal",
+                backgroundColor: "teal",
+                borderWidth: 5,
+                pointRadius: 8
+              }]
+            },
+            options: {
+              layout: { padding: { top: 20, right: 20 } },
+              plugins: { legend: { display: false }, title: titleOptions("Quantity Trend over Time") },
+              scales: {
+                x: { title: axisTitle("Date"), ticks: { minRotation: 45, maxRotation: 45 } },
+                y: { beginAtZero: true, title: axisTitle("Quantity") }
+              }
+            },
+            plugins: [whiteBackground]
+          },
+          1500,
+          750
+        )
+      ];
+    }
+
+    async function generateLocally(file) {
+      if (!file.name.toLowerCase().endsWith(".xlsx")) throw new LocalError("errNotXlsx");
+      if (file.size > MAX_UPLOAD_BYTES) throw new LocalError("errTooLarge");
+
+      await loadLibs();
+
+      const rows = cleanRows(readRows(window.XLSX, await file.arrayBuffer()));
+
+      if (!rows.length) throw new LocalError("errNoRows");
+
+      const report = computeReport(rows);
+
+      return buildPdf(window.jspdf.jsPDF, report, drawCharts(report));
+    }
+
+    function showBlobDownload(blob) {
+      if (lastBlobUrl) URL.revokeObjectURL(lastBlobUrl);
+
+      lastBlobUrl = URL.createObjectURL(blob);
+      showDownloadLink(lastBlobUrl);
+    }
+
+    function errorMessage(error) {
+      if (error instanceof LocalError) {
+        return t(error.key).replace("{cols}", error.params.cols || "");
+      }
+
+      return error instanceof TypeError ? t("networkError") : error.message;
+    }
+
+    async function requestCode() {
+      const email = emailInput.value.trim();
+
+      if (!email) {
+        setStatus(t("needEmail"), "error");
+        return;
+      }
+
+      sendCodeBtn.disabled = true;
+      setStatus(t("sendingCode"));
+
+      try {
+        const formData = new FormData();
+        formData.append("email", email);
+
+        const response = await fetch(`${API_URL}/request-code`, {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await parseResponse(response);
+
+        if (!response.ok) {
+          throw new Error(data.error || t("codeFailed"));
+        }
+
+        verificationToken = data.token;
+
+        codeFields.classList.add("visible");
+        codeInput.focus();
+        setStatus(t("codeSent"), "success");
+      } catch (error) {
+        setStatus(errorMessage(error), "error");
+      } finally {
+        sendCodeBtn.disabled = false;
+      }
+    }
+
+    // Returns false when the server is unreachable (the caller then falls back to the browser).
+    async function submitToApi(formData, shouldSendEmail) {
+      let response;
+
+      try {
+        response = await fetchWithTimeout(
+          `${API_URL}/generate-report`,
+          { method: "POST", body: formData },
+          GENERATE_TIMEOUT_MS
+        );
+      } catch (error) {
+        return false;
+      }
+
+      if (SERVER_DOWN_STATUSES.includes(response.status)) return false;
+
+      const data = await parseResponse(response);
+
+      if (!response.ok) {
+        if (data.download_url) {
+          showDownloadLink(`${API_URL}${data.download_url}`);
+        }
+
+        throw new Error(data.error || t("failed"));
+      }
+
+      setStatus(shouldSendEmail ? t("successSent") : t("success"), "success");
+
+      showDownloadLink(`${API_URL}${data.download_url}`);
+
+      return true;
+    }
+
     sendEmailInput.addEventListener("change", updateEmailFieldsVisibility);
-    moreOptionsBtn.addEventListener("click", toggleMoreOptions);
+    sendCodeBtn.addEventListener("click", requestCode);
+
+    document.querySelectorAll(".lang-switch button").forEach(function (button) {
+      button.addEventListener("click", function () {
+        setLanguage(button.dataset.lang);
+      });
+    });
 
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
@@ -396,73 +1221,66 @@ Automated Sales Report System`;
       const shouldSendEmail = sendEmailInput.checked;
 
       if (!file) {
-        statusDiv.textContent = "Please select an Excel file.";
-        statusDiv.className = "status error";
+        setStatus(t("needFile"), "error");
         return;
       }
 
-      if (shouldSendEmail && !recipientsInput.value.trim()) {
-        statusDiv.textContent = "Please add at least one recipient email.";
-        statusDiv.className = "status error";
-        return;
+      if (shouldSendEmail) {
+        if (!emailInput.value.trim()) {
+          setStatus(t("needEmail"), "error");
+          return;
+        }
+
+        if (!verificationToken || !codeInput.value.trim()) {
+          setStatus(t("needCode"), "error");
+          return;
+        }
       }
 
       const formData = new FormData();
 
       formData.append("file", file);
       formData.append("send_email", shouldSendEmail ? "true" : "false");
-      formData.append("recipients", recipientsInput.value.trim());
 
       if (shouldSendEmail) {
-        formData.append("email_subject", getEmailSubject());
-        formData.append("email_body", getEmailBody());
-      } else {
-        formData.append("email_subject", DEFAULT_EMAIL_SUBJECT);
-        formData.append("email_body", DEFAULT_EMAIL_BODY);
+        formData.append("email", emailInput.value.trim());
+        formData.append("code", codeInput.value.trim());
+        formData.append("token", verificationToken);
       }
 
       submitBtn.disabled = true;
-      submitBtn.textContent = shouldSendEmail
-        ? "Generating and sending..."
-        : "Generating...";
+      submitBtn.textContent = shouldSendEmail ? t("generatingSend") : t("generating");
 
-      statusDiv.textContent = shouldSendEmail
-        ? "Generating report and sending email, please wait..."
-        : "Generating report, please wait...";
-
-      statusDiv.className = "status";
+      setStatus(shouldSendEmail ? t("waitGeneratingSend") : t("waitGenerating"));
       downloadArea.innerHTML = "";
+      lastDownloadUrl = "";
 
       try {
-        const response = await fetch(`${API_URL}/generate-report`, {
-          method: "POST",
-          body: formData
-        });
+        const handledByApi = offlineMode ? false : await submitToApi(formData, shouldSendEmail);
 
-        const data = await parseResponse(response);
+        if (!handledByApi) {
+          enterOfflineMode();
+          setStatus(t(APP_CONFIG.USE_API ? "generatingLocal" : "generatingBrowser"));
 
-        if (!response.ok) {
-          if (data.download_url) {
-            showDownloadLink(data.download_url);
-          }
-
-          throw new Error(data.error || "Failed to generate report.");
+          showBlobDownload(await generateLocally(file));
+          setStatus(t(APP_CONFIG.USE_API ? "successLocal" : "success"), "success");
         }
-
-        statusDiv.textContent = data.message || "Report generated successfully.";
-        statusDiv.className = "status success";
-
-        showDownloadLink(data.download_url);
       } catch (error) {
-        statusDiv.textContent = error.message;
-        statusDiv.className = "status error";
+        setStatus(errorMessage(error), "error");
       } finally {
         submitBtn.disabled = false;
-        updateEmailFieldsVisibility();
+        updateSubmitLabel();
       }
     });
 
+    setLanguage(detectLanguage());
     updateEmailFieldsVisibility();
+
+    if (APP_CONFIG.USE_API) {
+      loadConfig();
+    } else {
+      enterOfflineMode();
+    }
   </script>
 </body>
 </html>
