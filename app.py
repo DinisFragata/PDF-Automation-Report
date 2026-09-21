@@ -73,7 +73,7 @@ VERIFICATION_EMAIL_BODY = (
     "Your verification code for the Automated Sales Report demo is: {code}\n\n"
     "It expires in 10 minutes. If you did not request it, you can ignore this email.\n\n"
     "Best regards,\n"
-    "Automated Sales Report System"
+    "Dinis Fragata"
 )
 
 REPORT_EMAIL_SUBJECT = "Your automated sales report"
@@ -83,7 +83,7 @@ REPORT_EMAIL_BODY = (
     "Attached is your automated sales report with charts, metrics and analysis.\n\n"
     "You received this because you requested it on the Automated Sales Report demo.\n\n"
     "Best regards,\n"
-    "Automated Sales Report System"
+    "Dinis Fragata"
 )
 
 
