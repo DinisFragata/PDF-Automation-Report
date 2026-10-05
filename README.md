@@ -1,4 +1,4 @@
-# Automated Sales Report System
+# PDF Automation Report
 
 Turn a raw sales spreadsheet into a polished PDF report (metrics, charts and written analysis) in one click, and optionally deliver it by email.
 
