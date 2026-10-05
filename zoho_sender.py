@@ -40,7 +40,7 @@ def _get_smtp_config() -> dict:
     smtp_password = os.getenv("SMTP_PASSWORD")
 
     smtp_from_email = os.getenv("SMTP_FROM_EMAIL", smtp_username)
-    smtp_from_name = os.getenv("SMTP_FROM_NAME", "Automated Sales Report")
+    smtp_from_name = os.getenv("SMTP_FROM_NAME", "PDF Automation Report")
 
     if not smtp_username:
         raise RuntimeError("Missing SMTP_USERNAME environment variable.")
@@ -79,13 +79,13 @@ def send_email_zoho(
     if len(recipient_list) > max_recipients:
         raise ValueError(f"At most {max_recipients} recipient(s) are allowed.")
 
-    email_subject = subject.strip() or "Automated Sales Report"
+    email_subject = subject.strip() or "PDF Automation Report"
 
     email_body = body.strip() or (
         "Hello,\n\n"
         "Attached is your automated sales report.\n\n"
         "Best regards,\n"
-        "Automated Sales Report System"
+        "PDF Automation Report System"
     )
 
     message = EmailMessage()

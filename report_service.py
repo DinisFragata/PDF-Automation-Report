@@ -32,7 +32,7 @@ def generate_sales_report_from_dataframe(
     df: pd.DataFrame,
     output_file: str | None = None,
     title: str = "Sales Report",
-    header_text: str = "Automated Sales Report",
+    header_text: str = "PDF Automation Report",
 ) -> str:
 
     os.makedirs("assets", exist_ok=True)
@@ -61,7 +61,7 @@ def generate_sales_report_from_excel(
     excel_path: str,
     output_file: str | None = None,
     title: str = "Sales Report",
-    header_text: str = "Automated Sales Report",
+    header_text: str = "PDF Automation Report",
 ) -> str:
 
     if not os.path.exists(excel_path):
@@ -82,7 +82,7 @@ def generate_sales_report_from_google_sheets(
     sheet_name: str,
     output_file: str | None = None,
     title: str = "Sales Report",
-    header_text: str = "Automated Sales Report",
+    header_text: str = "PDF Automation Report",
 ) -> str:
 
     df = load_data_from_google_sheets(

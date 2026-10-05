@@ -29,7 +29,7 @@ from zoho_sender import send_email_zoho
 
 logger = logging.getLogger("sales_report_api")
 
-app = FastAPI(title="Automated Sales Report API")
+app = FastAPI(title="PDF Automation Report API")
 
 
 FRONTEND_URL = os.getenv(
@@ -70,7 +70,7 @@ VERIFICATION_EMAIL_SUBJECT = "Your verification code"
 
 VERIFICATION_EMAIL_BODY = (
     "Hello,\n\n"
-    "Your verification code for the Automated Sales Report demo is: {code}\n\n"
+    "Your verification code for the PDF Automation Report demo is: {code}\n\n"
     "It expires in 10 minutes. If you did not request it, you can ignore this email.\n\n"
     "Best regards,\n"
     "Dinis Fragata"
@@ -81,7 +81,7 @@ REPORT_EMAIL_SUBJECT = "Your automated sales report"
 REPORT_EMAIL_BODY = (
     "Hello,\n\n"
     "Attached is your automated sales report with charts, metrics and analysis.\n\n"
-    "You received this because you requested it on the Automated Sales Report demo.\n\n"
+    "You received this because you requested it on the PDF Automation Report demo.\n\n"
     "Best regards,\n"
     "Dinis Fragata"
 )
@@ -105,7 +105,7 @@ def _client_ip(request: Request) -> str:
 @app.get("/")
 def root():
     return {
-        "message": "Automated Sales Report API is running",
+        "message": "PDF Automation Report API is running",
         "endpoints": {
             "health": "/health",
             "config": "/config",
@@ -178,7 +178,7 @@ def _create_report_from_excel(upload_path: Path, pdf_path: Path, work_dir: Path)
         output_file=str(pdf_path),
         pdf_settings={
             "title": "Sales Report",
-            "header_text": "Automated Sales Report",
+            "header_text": "PDF Automation Report",
         },
         charts_dir=str(charts_dir),
     )
